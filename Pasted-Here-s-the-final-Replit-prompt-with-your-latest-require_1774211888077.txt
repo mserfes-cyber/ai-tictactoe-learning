@@ -1,0 +1,155 @@
+Here’s the final Replit prompt with your latest requirements baked in (AI learning from every game, writing to memory/log, and avoiding repeating losing moves, plus all 3‑second popups and badges):
+
+***
+
+> You are updating an educational Tic-Tac-Toe AI web app for a 4th grade science fair. The core game and AI logic already work well. Your job is to:
+>
+> - **Keep AI genuinely learning from every game** and writing into memory and the AI log, not just the first 5 games.  
+> - **Avoid repeating the same losing plays** when possible: if a move pattern has led to AI losses, prefer other moves in similar board states.  
+> - **Preserve** the existing game flow and 5‑game training → “learned AI” progression.  
+> - **Only change UI text**, add badges/banners, and fix popup timing; do not remove working logic (training, game rules, scoreboard, sidebar, etc.).
+> - Make **all popups, banners, and toasts** (except persistent badges and cards) linger for about **3 seconds** before auto‑dismissing, instead of disappearing instantly.  
+> - Ensure the move‑1/2/3 popups fire **only once per browser session** (tracked in `popups_shown`), not once per game.
+>
+> Below are the **exact** new messages, behavior, and logic rules.
+
+***
+
+## 1. Games 1–5 (AI is training / learning)
+
+### On first load (before any game)
+
+- `st.success banner` (3 seconds):  
+  > "🧠 YOUR AI IS READY TO LEARN! It’s about to play practice games and start remembering smart moves. Help it get stronger by playing! 💪"
+
+### Move 1 of any game (fires once per session)
+
+- `st.success banner` (3 seconds):  
+  > "🎉 AWESOME FIRST MOVE! 🎉 — Right now your AI is LEARNING from your games. It’s remembering what happens after each move!"
+
+### Move 2 (fires once per session)
+
+- `st.info banner` (3 seconds):  
+  > "🔍 LEARNING IN PROGRESS! 🔍 — AI is watching this game so it can make better moves in future games."
+
+### Move 3 (fires once per session)
+
+- `st.toast` (3 seconds):  
+  > "🧠 AI is saving this game in its memory so it can play smarter later!" (icon: 🦸)
+
+### At end of each game (win/loss/draw) during games 1–5
+
+- **If you win — `st.balloons()` + `st.toast` (3 seconds):**  
+  > "YOU BEAT THE TRAINING AI! 🏆 Every practice game makes it a little smarter!"
+
+- **If AI wins — `st.toast` (3 seconds):**  
+  > "AI WINS THIS PRACTICE GAME! 🤖 It will remember this to get even better."
+
+- **If tie — `st.toast` (3 seconds):**  
+  > "TIE GAME! 🤝 AI is still training and learning from every move."
+
+### Persistent badge during games 1–5 (always visible)
+
+- Blue gradient card text:  
+  > "🚀 Play N more games to TRAIN YOUR AI! — After these practice games, your AI will start using what it has learned."
+
+***
+
+## 2. After Game 5 (games 6+ — AI is using what it learned)
+
+From game 6 onward, the move‑1/2/3 popups **do not reappear** (they already track `popups_shown` and fire only once per session).
+
+### End-of-game toasts (games 6+)
+
+- **If you win — `st.balloons()` + `st.toast` (3 seconds):**  
+  > "YOU BEAT THE TRAINED AI! 🏆 It used its memory, but you still outsmarted it!"
+
+- **If AI wins — `st.toast` (3 seconds):**  
+  > "AI WINS! 🤖 It used what it learned from past games to choose its moves."
+
+- **If tie — `st.toast` (3 seconds):**  
+  > "TIE GAME! 🤝 Your skills matched the trained AI move for move!"
+
+### New persistent element (AI prediction badge)
+
+- Always visible badge text:  
+  > "😎/🤔/⚡/🔥/🎉 AI Win Chance: X% — AI is using what it learned from past games to make this prediction."
+
+### Training button toast (any time, games 1–5 or after)
+
+- `st.toast` (3 seconds):  
+  > "🧠 AI GOT SMARTER! It just learned from 5 more games. Try beating it now! 🚀"
+
+***
+
+## 3. Science‑fair framing and “old vs new” behavior
+
+- Add a short “Science Question” line somewhere visible (banner or side panel):  
+  > "🔬 Science Question: Can AI learn from every game that I play?"
+
+- After game 5 ends, show a **3‑second banner or toast**:  
+  > "🎓 AI LEVEL UP! Your AI just finished its first learning set. From now on, it will use what it learned from your games to choose moves."
+
+- After game 5, occasionally show 3‑second toasts that link to “old vs new” behavior, for example:
+  - “AI used patterns from your earlier games to win this one.”
+  - “When you beat AI, it learns from its mistakes and avoids the same losing moves next time.”
+  - “Every game you play helps AI learn and change how it plays.”
+
+***
+
+## 4. AI memory badges (persistent, not timed)
+
+Add these badges that appear when the corresponding game count is reached (they stay visible, not auto‑Dismissed).
+
+- **After game 5:**  
+  - Badge name: `AI Memory Unlocked`  
+  - Text:  
+    > "🎓 AI MEMORY UNLOCKED — Your AI remembered its first 5 games and is now using them to play smarter!"
+
+- **After game 10:**  
+  - Badge name: `AI Level 2: More Memories`  
+  - Text:  
+    > "⚡ AI LEVEL 2 — Your AI has learned from 10 games. It knows more patterns now!"
+
+- **After game 15 (AI Challenge Complete):**  
+  - Badge name: `AI Challenge Complete`  
+  - Text:  
+    > "🏁 15-GAME CHALLENGE DONE — Check the AI Battle Log: did AI learn?"
+
+This badge marks the first 15 games as the official **science‑fair hypothesis test** that the student can point to judges.
+
+***
+
+## 5. AI learning and memory rules
+
+In your existing AI logic, ensure:
+
+- **AI learns from every game, not just the first 5:**  
+  - Write into the AI memory/log on every game completion (win/loss/draw), updating:
+    - board states,  
+    - rewards,  
+    - move‑quality estimates (Q‑like or KNN‑style scores).  
+  - The “first 5 games” are just the **first visible phase**, not the only training data.
+
+- **AI avoids repeating losing move patterns (when possible):**  
+  - In similar board states, if a move led to AI losses before, prefer other moves that have higher learned scores or success counts.  
+  - This should be handled in the move‑selection logic (not by deleting history, just biasing away from bad moves).
+
+- **AI Battle Log reflects all games:**  
+  - Ensure the “AI Battle Log / Battleground” records every game's outcome, selected moves, and any AI‑side labels (e.g., “training” vs “using learned” phase).
+
+***
+
+## 6. Behavior rules summary
+
+- All `st.success`, `st.info`, `st.balloons`, and `st.toast` messages (not persistent badges or cards) should **stay on screen for about 3 seconds** before auto‑dismissing.
+- The move‑1, move‑2, move‑3 banners/toasts must **fire only once per browser session** (using your existing `popups_shown` logic).
+- Do not change the core game rules or AI learning algorithms; only update:
+  - UI text,  
+  - timing of popups,  
+  - the three AI badges,  
+  - and the science‑fair question banner.
+
+When you are done, list:
+- Which files/components you changed.
+- Where the science‑fair question text, the 3‑second popup durations, the AI memory‑update calls, the losing‑move avoidance logic, and the three AI badges are defined.

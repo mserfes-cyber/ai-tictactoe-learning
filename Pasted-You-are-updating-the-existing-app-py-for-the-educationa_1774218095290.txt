@@ -1,0 +1,59 @@
+You are updating the existing `app.py` for the educational Tic‑Tac‑Toe AI game. The UI and behavior (popups, badges, “AI Battleground,” “Game History,” and “AI Memory”) are already working and must **not** be fundamentally changed.
+
+Focus on **one specific improvement**:
+
+When the **“🔍 AI Memory”** button is clicked, the page shows a KNN neighbor table with columns `Neighbor`, `Distance`, `Class`.  
+The explanation text “AI Memory explained: …” currently appears even before any real game is played, which is confusing.
+
+Do **only** this:
+
+Locate the block where you show:
+
+```python
+st.markdown("### 🔍 AI's Memory Bank")
+if st.session_state.knn_model:
+    try:
+        dist, idx = st.session_state.knn_model.kneighbors([board_features(st.session_state.board)])
+        # ... st.dataframe(ndata) ...
+    except Exception: ...
+```
+
+Modify it so that the **explanation text** only appears **after real‑game data exists**, and show a simple “no memory yet” message before that.
+
+Replace that block (or add the explanation inside it) with:
+
+```python
+st.markdown("### 🔍 AI's Memory Bank")
+
+if len(st.session_state.knn_x) == 0:
+    st.markdown("**AI Memory:** No real‑game data yet — AI is still learning from its first games.")
+else:
+    st.markdown("""
+    **AI Memory explained:**  
+    This table shows **3 past games that look almost like this board**.
+
+    - **“Player favored”** = AI lost or tied in that game.  
+    - **“AI favored”** = AI won or did well in that game.  
+
+    AI uses these 3 similar games to decide which move is safer or smarter right now.
+    """)
+
+    if st.session_state.knn_model:
+        try:
+            dist, idx = st.session_state.knn_model.kneighbors([board_features(st.session_state.board)])
+            ndata = [{"Neighbor": j+1, "Distance": f"{d:.2f}", "Class": "AI favored" if st.session_state.knn_y[i] == 1 else "Player favored"}
+                     for j, (d, i) in enumerate(zip(dist[0], idx[0]))]
+            st.dataframe(pd.DataFrame(ndata), use_container_width=True, hide_index=True)
+            st.caption(f"K=3 | Total samples: {len(st.session_state.knn_x)}")
+        except Exception:
+            st.info("Play a move first to see neighbors!")
+```
+
+This ensures:
+
+- Before any real game (or very early) → **short “no memory yet” line**.  
+- After real‑game data is present → **detailed “AI Memory explained” text + the neighbor table**.  
+
+Do **not** modify:
+- `st.session_state.knn_model`, `st.session_state.knn_x`, `st.session_state.knn_y`, or `board_features`.  
+- Only add the conditional explanation and leave the existing dataframe and neighbor logic intact.

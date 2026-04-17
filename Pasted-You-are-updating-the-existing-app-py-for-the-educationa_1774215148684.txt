@@ -1,0 +1,111 @@
+You are updating the existing `app.py` for the educational Tic-Tac-Toe AI game. The UI, 3‑second popups, and badges (AI Battleground, 5‑/10‑/15‑game badges, “AI Challenge Complete”) are already working and must **not** be removed or fundamentally changed.
+
+Focus on:
+1. Making ML mode **learn from every game** and **avoid repeating your exact winning move pattern** (especially when you win with the same center‑based opening).  
+2. Making the “Why that move?” agent clearly explain **how prior / learned moves and Q‑scores** impacted the AI’s choice.  
+3. **Keeping all timing and badge behavior as‑is** (3‑second auto‑dismissed banners/toasts, 5‑/10‑/15‑game badge blocks, “AI Challenge Complete” text, and “Check the AI Battle Log: did AI learn?”).
+
+***
+
+### A. Make AI learn to avoid repeating your exact winning pattern
+
+Replace the current `ai_move_ml` function with:
+
+```python
+def ai_move_ml(b, q_table, knn_model):
+    candidates = []
+    for r, c in empty_cells(b):
+        t = b.copy()
+        t[r, c] = O
+        key = board_key(t)
+        combined_score, q_signal, knn_prob = get_prediction(t, q_table, knn_model)
+        score = combined_score
+        if key in q_table:
+            base = q_table[key]
+            if base < 0.4:
+                score -= 20
+        candidates.append((r, c, score, key))
+    candidates.sort(key=lambda x: x[2], reverse=True)
+    if st.session_state.game_count < 20 and len(candidates) > 1:
+        top_two = candidates[:2]
+        chosen = random.choice(top_two)
+    else:
+        chosen = candidates[0]
+    return chosen[0], chosen[1]
+```
+
+In `handle_click`, keep:
+
+```python
+if st.session_state.game_count < 5:
+    move = ai_move_smart(st.session_state.board)
+else:
+    move = ai_move_ml(st.session_state.board, st.session_state.q_table, st.session_state.knn_model)
+```
+
+Do **not** change:
+- `minimax`, `ai_move_smart`, `train_q_table`, `learn_from_real_game`, `get_prediction`, `board_features`, or `build_knn`.  
+- Only update `ai_move_ml`’s scoring and sorting as above.
+
+***
+
+### B. Make “Why that move?” explain learned history
+
+Replace your current `explain_move` function with:
+
+```python
+def explain_move(b, move, q):
+    r, c = move
+    t = b.copy()
+    t[r, c] = O
+    q_score = q.get(board_key(t), 0.5)
+    parts = []
+    for pr, pc in empty_cells(b):
+        temp = b.copy()
+        temp[pr, pc] = X
+        if check_winner(temp) == X and (pr, pc) == (r, c):
+            parts.append("🛡️ Blocked your immediate win on that spot.")
+    if check_winner(t) == O:
+        parts.append("🎯 Went for a win based on learned patterns from past games.")
+    if (r, c) == (1, 1) and b[1, 1] == EMPTY:
+        parts.append("🧠 Picked the center after learning from past games that this often leads to wins or ties.")
+    if (r, c) in [(0,0),(0,2),(2,0),(2,2)]:
+        parts.append("📐 Chose a corner after learning that similar past games often won or forced ties here.")
+    if q_score >= 0.6:
+        parts.append(f"📈 This move has a high learned score ({q_score:.2f}) from past games.")
+    elif q_score <= 0.4:
+        parts.append(f"📉 This move has a low learned score ({q_score:.2f}), but it was still the best option available.")
+    if not parts:
+        parts.append(f"🤔 AI chose this move because its learned score was {q_score:.2f} from past games.")
+    return parts
+```
+
+Then, in `agent_answer`, replace the block that checks for “why that move?”‑style questions with:
+
+```python
+    if any(w in q for w in ["why that move", "why did you move", "why this move", "why there", "explain this move"]):
+        if st.session_state.ai_explanations:
+            exp_lines = "\n".join(f"- {line}" for line in st.session_state.ai_explanations)
+            return f"AI chose this move because:\n{exp_lines}"
+        return "AI picks the move with the best learned score from past games and its game‑tree logic. In this case, it didn’t yet have a clear record for this exact position."
+```
+
+***
+
+### C. Keep everything else unchanged
+
+- Keep:
+  - 3‑second popups (training popup, move‑1/2/3 banners, win/loss/draw toasts, “AI LEVEL UP!”, “YOU BEAT THE TRAINED AI!”, end‑of‑game banners, etc.).
+  - The “AI Battleground” scoreboard, “AI Memory” views, sidebar Q&A agent, training button, and all HTML/CSS styling.
+  - 5‑game / 10‑game / 15‑game badges:
+    - `AI MEMORY UNLOCKED`
+    - `AI LEVEL 2`
+    - `AI Challenge Complete` (with your text: “🏁 15-GAME CHALLENGE DONE — Check the AI Battle Log: did AI learn?”).
+- Do **not** change:
+  - `minimax`, `ai_move_smart`, `train_q_table`, `learn_from_real_game`, `get_prediction`, `board_features`, or `build_knn`.
+
+***
+
+When you are done, list:
+- Which files/components you changed.  
+- Where the new `ai_move_ml`, `explain_move`, and the “why that move?” agent answer are defined.

@@ -1,0 +1,54 @@
+**`st.toast()` is perfect for data science explanations**—non-blocking, top-right positioning, auto-disappears after 4s, stacks cleanly. Kids get bite-sized ML concepts exactly when AI hits milestones without interrupting gameplay.
+
+## Best Patterns for DS Toasts
+
+```python
+# 1. TRAINING COMPLETE (Green success vibe)
+st.toast("🤓 **Q-Learning trained!** AI now scores moves by win rewards.", 
+         icon="🧠", duration="long")
+
+# 2. FIRST PREDICTION (Blue info vibe)  
+st.toast("🔍 **KNN activated!** Found 3 similar games to predict win chance.", 
+         icon="📊")
+
+# 3. AGENT DECISION (Purple positive vibe)
+st.toast("⚡ **Agent workflow:** KNN patterns → Q-table picks best move!", 
+         icon="🚀")
+```
+
+## Smart Triggering (No Clicks!)
+```python
+# Track toast states in session
+if 'toasts_shown' not in st.session_state:
+    st.session_state.toasts_shown = []
+
+# After training completes
+if st.session_state.trained and 'qlearning' not in st.session_state.toasts_shown:
+    st.toast("🤓 Q-Learning = AI learns move scores from win rewards!", icon="🧠")
+    st.session_state.toasts_shown.append('qlearning')
+
+# Before first AI prediction  
+if len(st.session_state.board_filled) > 2 and 'knn' not in st.session_state.toasts_shown:
+    st.toast("📈 KNN = Finds closest past games (neighbors) to guess outcome!", icon="🔍")
+    st.session_state.toasts_shown.append('knn')
+```
+
+## Pro Tips for Kid-Friendly DS Toasts
+```
+✅ Keep under 15 words per toast
+✅ Emoji-first (🤓📊🧠🔍🚀)
+✅ Bold key terms (**FEATURES**, **Q-LEARNING**)
+✅ Trigger on milestones, not every move
+✅ "long" duration (6s) for reading time
+✅ Stack max 3 at once (don't overwhelm)
+```
+
+## Your Perfect Sequence (GIF-Ready)
+```
+1. Train 5 games → [Q-Learning toast 🧠]
+2. Your first X → AI move → [KNN toast 🔍]  
+3. AI explains → [Agent toast 🚀]
+4. Win → [Confetti + "Reset!" toast 🎉]
+```
+
+**Result**: Kids learn ML passively while playing—your LinkedIn demo shows toasts firing in real-time as AI "thinks." Pure educational gold! 🎮✨

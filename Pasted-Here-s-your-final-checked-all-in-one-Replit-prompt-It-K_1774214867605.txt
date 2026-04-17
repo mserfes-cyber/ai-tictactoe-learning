@@ -1,0 +1,133 @@
+Here’s your **final, checked, all‑in‑one Replit prompt**. It:
+
+- Keeps your 3‑second popups, 15‑game badge flow, and “AI Challenge Complete” text.  
+- Makes the AI move selection **softly vary** in games 5–20 so ML feels visible.  
+- Updates `explain_move` and the “Why that move?” agent to explicitly talk about **learned scores and past games**.  
+- Leaves your existing Q‑learning + KNN + Minimax core intact.
+
+***
+
+> You are updating the existing `app.py` for the educational Tic-Tac-Toe AI game. The UI, popups, and badges (3‑second banners, AI Battleground, 5‑/10‑/15‑game badges, and “AI Challenge Complete”) already work and must **not** be removed or fundamentally changed.  
+>
+> Focus only on:
+> 1. Making ML mode **visibly influence** the chosen moves after game 5, not just follow pure Minimax logic.  
+> 2. Making the “Why that move?” agent clearly explain **how prior / learned moves** and **Q‑scores** impacted the AI’s choice.  
+> 3. Keeping all timing and badge behavior as‑is.
+>
+> From your current code, implement **exactly** these changes:
+
+***
+
+### 1. Softly vary AI moves to show learning (not pure perfect‑play)
+
+Update `ai_move_ml` so it **sometimes** picks from the top‑2 moves when the game count is low‑to‑mid, instead of always picking the single best‑scored move.
+
+Replace the current `ai_move_ml` with:
+
+```python
+def ai_move_ml(b, q_table, knn_model):
+    candidates = []
+    for r, c in empty_cells(b):
+        t = b.copy()
+        t[r, c] = O
+        combined_score, q_signal, knn_prob = get_prediction(t, q_table, knn_model)
+        candidates.append((r, c, combined_score))
+    # Sort by learned score descending.
+    candidates.sort(key=lambda x: x [reddit](https://www.reddit.com/r/learnprogramming/comments/1jp3sx6/correct_way_to_wire_a_tictactoe_ai/), reverse=True)
+    # For games 5–19, pick from top 2 moves to show variation.
+    if st.session_state.game_count < 20 and len(candidates) > 1:
+        top_two = candidates[:2]
+        chosen = random.choice(top_two)
+    else:
+        # For games 20+ (or single‑move boards), pick the best‑scored move.
+        chosen = candidates[0]
+    return chosen[0], chosen [theinformaticists.wordpress](https://theinformaticists.wordpress.com/2021/08/25/learning-to-play-tic-tac-toe-via-reinforcement-learning/)
+```
+
+Then, in `handle_click`, keep:
+
+```python
+if st.session_state.game_count < 5:
+    move = ai_move_smart(st.session_state.board)
+else:
+    move = ai_move_ml(st.session_state.board, st.session_state.q_table, st.session_state.knn_model)
+```
+
+**Do not** change the existing `get_prediction`, `train_q_table`, `learn_from_real_game`, or `build_knn` logic.
+
+***
+
+### 2. Make “Why that move?” explain learned history
+
+Update `explain_move` so it **always mentions**:
+
+- whether the move has a **high or low learned score**, and  
+- how that score comes from **past games**.
+
+Replace the current `explain_move` with:
+
+```python
+def explain_move(b, move, q):
+    r, c = move
+    t = b.copy()
+    t[r, c] = O
+    q_score = q.get(board_key(t), 0.5)
+    parts = []
+    # Tactical reasons.
+    for pr, pc in empty_cells(b):
+        temp = b.copy()
+        temp[pr, pc] = X
+        if check_winner(temp) == X and (pr, pc) == (r, c):
+            parts.append("🛡️ Blocked your immediate win on that spot.")
+    if check_winner(t) == O:
+        parts.append("🎯 Went for a win based on learned patterns from past games.")
+    if (r, c) == (1, 1) and b[1, 1] == EMPTY:
+        parts.append("🧠 Picked the center after learning from past games that this often leads to wins or ties.")
+    if (r, c) in [(0,0),(0,2),(2,0),(2,2)]:
+        parts.append("📐 Chose a corner after learning that similar past games often won or forced ties here.")
+    # Learned‑score explanation.
+    if q_score >= 0.6:
+        parts.append(f"📈 This move has a high learned score: {q_score:.2f} (from past games).")
+    elif q_score <= 0.4:
+        parts.append(f"📉 This move has a low learned score: {q_score:.2f}, but it was still the best option in this position.")
+    if not parts:
+        parts.append(f"🤔 AI chose this move because its learned score was {q_score:.2f} from past games.")
+    return parts
+```
+
+Then, in `agent_answer`, update the response for “why that move?”‑style questions to **use these learned explanations**.
+
+Locate the line that checks `if any(w in q for w in [ ... "why that move", ... ])` and replace the whole block with:
+
+```python
+    if any(w in q for w in ["why that move", "why did you move", "why this move", "why there", "explain this move"]):
+        if st.session_state.ai_explanations:
+            exp_lines = "\n".join(f"- {line}" for line in st.session_state.ai_explanations)
+            return f"AI chose this move because:\n{exp_lines}"
+        return "AI picks the move with the best combination of learned score and game‑tree logic. In this case, it didn’t yet have a clear record for this exact position."
+```
+
+This ensures that every time the student asks “Why that move?”, the agent talks about **learned scores**, **past games**, and **Q‑based choices**, not just “blocking your win.”
+
+***
+
+### 3. Keep everything else unchanged
+
+- Keep:
+  - All 3‑second auto‑dismissed popups (training popup, move‑1/2/3 banners, win/loss/draw toasts, “AI LEVEL UP!”, “YOU BEAT THE TRAINED AI!”, etc.).
+  - The “AI Battleground” scoreboard and “AI Memory” views.
+  - The 5‑game / 10‑game / 15‑game badges:
+    - `AI MEMORY UNLOCKED`
+    - `AI LEVEL 2`
+    - `AI Challenge Complete` (with your text).
+  - The `LEARNING_TOASTS`, `auto_trained` logic, and your column / card layout styling.
+- Do **not** modify:
+  - The Minimax implementation (`minimax`, `ai_move_smart`).
+  - The Q‑learning update math (`train_q_table`, `learn_from_real_game`).
+  - The KNN training and feature layout (`board_features`, `build_knn`).
+
+***
+
+When you are done, list:
+- Which files/components you changed.
+- Where the new `ai_move_ml`, `explain_move`, and agent “why that move?” answer are defined.
