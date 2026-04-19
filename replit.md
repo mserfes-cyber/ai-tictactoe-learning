@@ -1,12 +1,11 @@
 # Super AI Tic-Tac-Toe Adventure
 
 ## Overview
-A kid-friendly (5th grade) educational Tic-Tac-Toe game built with Streamlit that teaches ML foundations through fun gameplay. Human (X) plays against AI (O). Uses Q-Learning for board state scoring and KNN (scikit-learn) for win predictions, with kid-friendly language throughout.
+A kid-friendly (5th grade) educational Tic-Tac-Toe game built with Streamlit that teaches ML foundations through fun gameplay. Human (X) plays against AI (O). Uses Q-Learning for board state scoring and KNN (scikit-learn) for win predictions.
 
 ## Architecture
-- **app.py** — Single-file Streamlit app with game logic, Q-learning, KNN, minimax AI, and UI
+- **app.py** — Single-file Streamlit app with game l  ogic, Q-learning, KNN, minimax AI, and UI
 - **Stack**: Python 3.11, Streamlit, NumPy, pandas, scikit-learn
-- **Port**: 5000 (configured in .streamlit/config.toml)
 
 ## Key Features
 - 3x3 Tic-Tac-Toe board with clickable buttons
@@ -36,9 +35,4 @@ Load → Auto-train (3s) → [AI Ready popup] → Play → [Awesome! popup] → 
 ```
 Games 1-5: Minimax AI (unbeatable) + "Play Nx more to unlock" badge
 Games 6+: ML-based AI (ai_move_ml) + live prediction badge
-```
-
-## Running
-```
-streamlit run app.py --server.port 5000
 ```
